@@ -3,9 +3,9 @@
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateMatchsTable extends Migration {
+class CreateMatchesTable extends Migration {
     public function up() {
-        Schema::create('matchs', function (Blueprint $table) {
+        Schema::create('matches', function (Blueprint $table) {
             $table->increments('id');
             $table->integer('competition')->unsigned();
             $table->foreign('competition')->references('id')->on('competitions');

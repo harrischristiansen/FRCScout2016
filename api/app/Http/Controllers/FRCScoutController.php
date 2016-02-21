@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
 
-use App\Models\Team;
+use App\Models\User;
 
 class FRCScoutController extends Controller {
     
@@ -14,11 +14,17 @@ class FRCScoutController extends Controller {
 		return view('pages.home');
 	}
 	
-	public function getCreateUser($user,$pass,$teamNum) {
+	public function getRegister($user,$pass,$teamNum) {
 		return "true";
 	}
 	
-	public function getLogin($user,$pass) {
+	public function getLogin($username,$pass) {
+		$user = User::where('username', $username)->where('password', $pass)->first();
+		
+		if($user == null) {
+			return "invalid";
+		}
+		
 		return "true";
 	}
 	

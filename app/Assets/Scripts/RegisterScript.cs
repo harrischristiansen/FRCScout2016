@@ -1,30 +1,45 @@
 ﻿using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 using System.Collections;
 
 public class RegisterScript : MonoBehaviour {
-
 	private string username;
 	private string password;
 	private string password2;
 	private string team;
+	private bool registered;
 
-	// Use this for initialization
+	private Text errorMsg;
+
 	void Start () {
-	
+		registered = false;
+		errorMsg = GameObject.Find("ErrorMsg").GetComponent<Text>();
+	}
+
+	void Update() {
+		if(registered) { // Register Success, Login User
+			registered = false;
+			PlayerPrefs.SetString("username", username);
+			LoginScript.username = username;
+			PlayerPrefs.SetString("teamNum", team);
+			LoginScript.teamNum = team;
+			PlayerPrefs.Save();
+			SceneManager.LoadScene("HomeScene");
+		}
 	}
 
 	public void setUsername(string user) {
-		this.username = user;
+		username = user;
 	}
 
 	public void setPassword(string pass) {
-		this.password = pass;
+		password = pass;
 	}
 
 	public void setPassword2(string pass) {
-		this.password2 = pass;
+		password2 = pass;
 	}
 
 	public void setTeam(string team) {
@@ -36,9 +51,38 @@ public class RegisterScript : MonoBehaviour {
 	}
 
 	public void registerClicked() {
-		// TODO: Register Submission/Validation
-
-		Debug.Log("Register Clicked: "+username+", "+password+", "+password2+", "+team);
-		SceneManager.LoadScene("HomeScene");
+		if(username == null || username == "") {
+			errorMsg.text = "Please Enter A Username";
+		} else if(password == null || password == "") {
+			errorMsg.text = "Please Enter A Password";
+		} else if(password != password2) {
+			errorMsg.text = "Passwords Do Not Match";
+		} else if(team == null || team == "") {
+			errorMsg.text = "Please Enter A Team";
+		} else {
+			StartCoroutine(attemptRegister());
+		}
 	}
+
+	IEnumerator attemptRegister() { // Verify username and password
+		string passHash = formatScript.GetMd5Hash(password);
+		string registerURL = LoginScript.APIURL + "register/" + WWW.EscapeURL(username) + "/" + passHash + "/" + team;
+		WWW registerObject = new WWW(registerURL);
+		yield return registerObject;
+		if (registerObject.error != null) { Debug.Log("Connection Failed: " + registerObject.error); }
+
+		if(registerObject.text != "true") {
+			if(registerObject.text == "invalid") {
+				errorMsg.text = "Invalid Team Number";
+			} else if(registerObject.text == "taken") {
+				errorMsg.text = "Username Unavailable";
+			} else {
+				errorMsg.text = "An Unknown Error Occured";
+			}
+			return false;
+		}
+
+		registered = true;
+	}
+
 }
